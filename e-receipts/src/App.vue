@@ -1,17 +1,13 @@
 <template>
-  <v-app id="inspire">
+  <v-app id="receipt">
     <v-navigation-drawer v-model="drawer" app>
-      <v-list-item title="Menu"></v-list-item>
+      <v-list>
+        <v-list-item prepend-avatar="/img/head_petja.jpg" subtitle="S22015437" title="Petja"></v-list-item>
+      </v-list>
       <v-divider></v-divider>
-      <v-list lines="one">
-        <v-list-item v-for="item in items" :key="item.title" link>
-          <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+      <v-list density="compact" nav>
+        <v-list-item @click="toggleScanner" prepend-icon="mdi-qrcode-scan" title="QR Scanner" value=""></v-list-item>
+        <v-list-item prepend-icon="mdi-library" title="Library" value=""></v-list-item>
       </v-list>
     </v-navigation-drawer>
 
@@ -28,7 +24,10 @@
     </v-app-bar>
 
     <v-main>
-      <!--  -->
+      <!-- Conditionally display the QR scanner -->
+      <v-container v-if="showScanner">
+        <QrcodeStream @decode="onDecode" @init="onInit" />
+      </v-container>
     </v-main>
   </v-app>
 </template>
@@ -40,17 +39,34 @@ const drawer = ref(null)
 </script>
 
 <script>
+import { QrcodeStream } from 'vue-qrcode-reader';
+
 export default {
-  data: () => ({
-    drawer: null,
-    items: [
-      {
-        title: 'QR Scanner', icon: 'mdi-qrcode-scan',
-      },
-      {
-        title: 'Library', icon: 'mdi-magnify',
-      },
-    ],
-  }),
-}
+  components: {
+    QrcodeStream,
+  },
+  data() {
+    return {
+      drawer: null,
+      showScanner: false, // Controls the visibility of the QR scanner
+    };
+  },
+  methods: {
+    toggleScanner() {
+      this.showScanner = !this.showScanner;
+    },
+    onDecode(content) {
+      console.log(content);
+      // Handle the decoded content here
+      this.showScanner = false; // Optionally hide the scanner after decoding
+    },
+    onInit(promise) {
+      promise.then(() => {
+        console.log('QR scanner is ready!');
+      }).catch(error => {
+        console.error('QR scanner error:', error);
+      });
+    }
+  },
+};
 </script>
