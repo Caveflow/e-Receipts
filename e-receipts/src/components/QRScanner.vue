@@ -1,7 +1,7 @@
 <template>
     <v-container>
       <!-- Button to toggle the QR scanner -->
-      <v-btn @click="toggleScanner" prepend-icon="mdi-scan-helper" color="primary">
+      <v-btn @click="toggleScanner" prepend-icon="mdi-scan-helper">
         {{ scannerActive ? 'Stop Scanner' : 'Start Scanner' }}
       </v-btn>
   
