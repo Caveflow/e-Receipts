@@ -1,6 +1,6 @@
 # COM646 Project: Digital Receipts
 
-#### :information_source: A responsive web application for managing digital receipts.
+#### A responsive web application for managing digital receipts.
 
 ### ✨ Features
 
