@@ -24,6 +24,14 @@
       <!-- Router View -->
       <router-view></router-view>
     </v-main>
+
+    <v-footer>
+      <div class="px-4 py-2 text-center w-100">
+        {{ new Date().getFullYear() }} — <strong>Petja Hentschel</strong> — BSc (Hons) Computer Science
+        <v-spacer></v-spacer>
+        <v-btn v-for="icon in ficons" :key="icon.icon" :icon="icon.icon" size="small" variant="plain" :href="icon.url" target="_blank"></v-btn>
+      </div>
+    </v-footer>
   </v-app>
 </template>
 
@@ -34,12 +42,15 @@ const drawer = ref(null)
 </script>
 
 <script>
-export default {  
+export default {
   name: 'App',
-  data() {
-    return {
-      drawer: null,
-    };
-  },
+  data: () => ({
+    drawer: null,
+    ficons: [
+      { icon: 'mdi-github', url: 'https://github.com/Caveflow/e-Receipts/' },
+      { icon: 'mdi-cloud', url: 'https://cloud.pehe-it.de/' },
+      { icon: 'mdi-school', url: 'https://wrexham.ac.uk/' },
+    ],
+  }),
 };
 </script>
