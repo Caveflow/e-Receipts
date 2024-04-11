@@ -2,6 +2,12 @@
 
 #### A responsive web application for managing digital receipts.
 
+### ✨ Features
+
+- **Responsive Web Design**
+- **QR Code Recognition And Processing**
+- **Containerisation For Easy Deployment**
+
 ### 🛠️ Technologies
 
 The following tools were used in the construction of the project:
