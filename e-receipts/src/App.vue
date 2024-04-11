@@ -2,7 +2,7 @@
   <v-app id="receipt">
     <v-navigation-drawer v-model="drawer" app>
       <v-list>
-        <v-list-item prepend-avatar="/img/head_petja.jpg" subtitle="S22015437" title="Petja"></v-list-item>
+        <v-list-item prepend-avatar="/img/head.jpg" subtitle="E-Mail" title="User"></v-list-item>
       </v-list>
       <v-divider></v-divider>
       <v-list density="compact" nav>

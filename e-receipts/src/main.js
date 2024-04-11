@@ -10,6 +10,8 @@ import { registerPlugins } from '@/plugins'
 // Components
 import App from './App.vue'
 
+import store from './store';
+
 // Router
 import router from './router'
 
@@ -20,6 +22,8 @@ const app = createApp(App)
 
 // Use the router with the Vue application instance
 app.use(router)
+
+app.use(store)
 
 registerPlugins(app)
 
