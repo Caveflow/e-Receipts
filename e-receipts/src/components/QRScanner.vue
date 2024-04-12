@@ -17,21 +17,37 @@
     <qrcode-capture @detect="onDetect"></qrcode-capture -->
 
     <v-row>
-      <v-col cols="6"> <!-- grid/flexbox -->
-        <!-- Text field to display the decoded content -->
-        <v-text-field ref="textFieldRef" label=" Decoded JSON content" :value="decodedContent" readonly></v-text-field>
+      <v-col class="d-flex align-center" cols="8">
+        <!-- d-flex to display elements inline and align-center for vertical alignment -->
+        <v-text-field ref="textFieldRef" label=" Decoded content" :value="decodedContent" readonly></v-text-field>
+        <v-btn color="primary" @click="storeContent" :disabled="!decodedContent || isSaving" class="ml-3">{{ isSaving ?
+          'Saving...' : 'Save' }}</v-btn>
       </v-col>
     </v-row>
+
+    <!-- Snackbar for success message -->
+    <v-snackbar v-model="showSnackbar" :timeout="2000" color="green">
+      The QR code has been successfully saved in the database!
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="showSnackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
 import { QrcodeStream, QrcodeCapture } from 'vue-qrcode-reader';
+import { ref as dbRef, set, push, getDatabase } from 'firebase/database';
+import { db } from "../firebase.js";
 
 // State to manage if the scanner is active
 const scannerActive = ref(false);
+
 const decodedContent = ref('');
+const showSnackbar = ref(false);
 
 // Watch the decodedContent for changes
 // Focus and highlight the text field when decodedContent gets a value
@@ -48,10 +64,18 @@ function toggleScanner() {
 }
 
 function onDetect(content) {
-  decodedContent.value = JSON.stringify(content);
-  // this.$store.commit('addDecodedContent', content);
-  // Optionally stop the scanner after a successful decode
-  scannerActive.value = false;
+  try {
+    const data = JSON.parse(JSON.stringify(content)); // Ensuring it's parsed as JSON
+    if (data.length > 0 && data[0].rawValue) {
+      decodedContent.value = data[0].rawValue; // Extracting rawValue from the first item
+      console.log("Decoded content:", decodedContent.value); // Log to verify
+    } else {
+      console.error('No data found or rawValue is missing');
+    }
+  } catch (error) {
+    console.error('Error parsing QR data:', error);
+  }
+  scannerActive.value = false; // Optionally stop the scanner after a successful decode
 }
 
 // paintOutline function to draw the outline of the detected QR code in red
@@ -98,4 +122,31 @@ function onError(err) {
   }
 }
 
+// Function to store content in Realtime Database
+const isSaving = ref(false);
+const storeContent = async () => {
+  if (!decodedContent.value) {
+    console.error('No content to save');
+    return; // Exit if there's no content to store
+  }
+
+  isSaving.value = true;  // Indicate that saving is in progress
+  const postListRef = dbRef(db, 'contents');
+  const newPostRef = push(postListRef);
+  set(newPostRef, {
+    qrcode: decodedContent.value,  // Use the actual value of decodedContent
+    user: "John Doe",
+    timestamp: Date.now()
+  })
+    .then(() => {
+      console.log("Content stored successfully");
+      decodedContent.value = '';  // Clear the input field after successful storage
+      isSaving.value = false;  // Reset saving indicator
+      showSnackbar.value = true;  // Show the snackbar when content is successfully stored
+    })
+    .catch((error) => {
+      console.error("Error storing content: ", error);
+      isSaving.value = false;
+    });
+};
 </script>
