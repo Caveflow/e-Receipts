@@ -18,9 +18,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { ref as firebaseRef, get } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { ref as firebaseRef, get, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from "../firebase.js";
 
+const auth = getAuth();
+const currentUser = ref(null);
 const search = ref(''); // Search query
 const items = ref([]); // This will hold fetched data
 const headers = ref([
@@ -29,10 +32,19 @@ const headers = ref([
   { title: 'Upload date', sortable: true, value: 'timestamp' }
 ]);
 
+// Monitor auth state and update currentUser
+onAuthStateChanged(auth, user => {
+  currentUser.value = user;
+});
+
 // Fetch data from Firebase
 onMounted(() => {
+  if (!currentUser.value) return;  // Do nothing if no user is logged in
+
   const dataRef = firebaseRef(db, 'contents');
-  get(dataRef).then((snapshot) => {
+  const userQuery = query(dataRef, orderByChild('userId'), equalTo(currentUser.value.email));
+  
+  get(userQuery).then((snapshot) => {
     if (snapshot.exists()) {
       items.value = Object.values(snapshot.val()).map((item, index) => ({
         id: index,
@@ -41,7 +53,7 @@ onMounted(() => {
         timestamp: new Date(item.timestamp).toLocaleString()
       }));
     } else {
-      console.log("No data available");
+      console.log("No data available for the user");
     }
   }).catch((error) => {
     console.error("Firebase read error:", error);

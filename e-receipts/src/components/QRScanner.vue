@@ -41,7 +41,8 @@
 import { ref, watch } from 'vue';
 import { QrcodeStream, QrcodeCapture } from 'vue-qrcode-reader';
 import { ref as dbRef, set, push, getDatabase } from 'firebase/database';
-import { db } from "../firebase.js";
+import { onAuthStateChanged } from 'firebase/auth'; 
+import { db, auth } from "../firebase.js";
 
 // State to manage if the scanner is active
 const scannerActive = ref(false);
@@ -124,9 +125,21 @@ function onError(err) {
 
 // Function to store content in Realtime Database
 const isSaving = ref(false);
+
+const currentUser = ref(null);  // Reactive reference for the current user
+
+// Monitor auth state and update currentUser
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser.value = user;  // Store the user object in a reactive ref
+  } else {
+    currentUser.value = null;  // Clear the user ref if logged out
+  }
+});
+
 const storeContent = async () => {
-  if (!decodedContent.value) {
-    console.error('No content to save');
+  if (!decodedContent.value || !currentUser.value) {
+    console.error('No content to save or user not logged in');
     return; // Exit if there's no content to store
   }
 
@@ -135,7 +148,7 @@ const storeContent = async () => {
   const newPostRef = push(postListRef);
   set(newPostRef, {
     qrcode: decodedContent.value,  // Use the actual value of decodedContent
-    user: "John Doe",
+    user: currentUser.value.email,
     timestamp: Date.now()
   })
     .then(() => {
