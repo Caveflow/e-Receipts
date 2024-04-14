@@ -15,7 +15,7 @@
 
     <v-app-bar :elevation="5" v-if="!hideNavigation">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-app-bar-title>Application</v-app-bar-title>
+      <v-app-bar-title>Receipt Hub</v-app-bar-title>
       <template v-slot:append>
         <v-btn icon="mdi-form-select" href="https://cloud.pehe-it.de/apps/forms/s/PitApeX852dH7aLHB7miQfKe"
           target="_blank"></v-btn>
@@ -26,7 +26,7 @@
       <!-- Router View -->
       <router-view></router-view>
     </v-main>
-
+    <v-divider></v-divider>
     <v-footer v-if="!hideNavigation">
       <div class="px-4 py-2 text-center w-100">
         {{ new Date().getFullYear() }} — <strong>Petja Hentschel</strong> — BSc (Hons) Computer Science
@@ -54,9 +54,13 @@ const hideNavigation = computed(() => {
 const authStore = useAuthStore();
 authStore.initializeAuth();
 
-const signOut = () => {
-  authStore.signOut();
-  router.push('/login');
+const signOut = async () => {
+  try {
+    await authStore.signOut();  // Ensure sign out completes
+    router.push('/login');      // Then redirect to login
+  } catch (error) {
+    console.error('Error signing out:', error);
+  }
 };
 
 const ficons = ref([
