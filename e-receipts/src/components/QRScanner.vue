@@ -1,10 +1,9 @@
 <template>
   <v-container>
     <!-- Button to toggle the QR scanner -->
-    <v-btn @click="toggleScanner" prepend-icon="mdi-scan-helper" class="mb-3">
+    <v-btn @click="toggleScanner" size="large" color="primary" prepend-icon="mdi-scan-helper" class="mt-3">
       {{ scannerActive ? 'Stop Scanner' : 'Start Scanner' }}
     </v-btn>
-
     <!-- QR Code Scanner -->
     <qrcode-stream v-if="scannerActive" @detect="onDetect" :track="paintOutline" @error="onError"></qrcode-stream>
     <v-row v-else>

@@ -17,43 +17,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { ref, onMounted, computed } from 'vue';
+import { useAuthStore } from '../stores/auth.js';
 import { ref as firebaseRef, get, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from "../firebase.js";
 
-const auth = getAuth();
-const currentUser = ref(null);
+const authStore = useAuthStore();
+authStore.initializeAuth();
+const userEmail = computed(() => authStore.userEmail);
 const search = ref(''); // Search query
 const items = ref([]); // This will hold fetched data
 const headers = ref([
-  { title: 'QR Code', sortable: true, value: 'qrcode' },
+  { title: 'Receipt-ID', sortable: true, value: 'qrcode' },
   { title: 'User', value: 'user' },
   { title: 'Upload date', sortable: true, value: 'timestamp' }
 ]);
 
-// Monitor auth state and update currentUser
-onAuthStateChanged(auth, user => {
-  currentUser.value = user;
-});
-
-// Fetch data from Firebase
+// Fetch data from Firebase based on current user's email
 onMounted(() => {
-  if (!currentUser.value) return;  // Do nothing if no user is logged in
-
+  if (!userEmail) {
+    console.log("No user or user email is logged in");
+    return;  // Exit if no user is logged in or email is not available
+  }
+  //const userEmail = authStore.userEmail
   const dataRef = firebaseRef(db, 'contents');
-  const userQuery = query(dataRef, orderByChild('userId'), equalTo(currentUser.value.email));
-  
+  const userQuery = query(dataRef, orderByChild('user'), equalTo(authStore.userEmail));
+
   get(userQuery).then((snapshot) => {
     if (snapshot.exists()) {
-      items.value = Object.values(snapshot.val()).map((item, index) => ({
-        id: index,
+      items.value = Object.values(snapshot.val()).map((item) => ({
         qrcode: item.qrcode,
         user: item.user,
         timestamp: new Date(item.timestamp).toLocaleString()
       }));
+      console.log("Data fetched successfully for email:", userEmail);
     } else {
-      console.log("No data available for the user");
+      console.log("No data available for the user with email:", userEmail);
     }
   }).catch((error) => {
     console.error("Firebase read error:", error);

@@ -4,9 +4,10 @@
 
 ### ✨ Features
 
-- **Responsive Web Design**
-- **QR Code Recognition And Processing**
-- **Containerisation For Easy Deployment**
+- Responsive Web Design
+- QR Code Recognition And Processing
+- Multi User Support
+- Containerisation For Easy Deployment
 
 ### 🛠️ Technologies
 

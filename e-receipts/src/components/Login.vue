@@ -53,14 +53,15 @@
 
 <script setup>
 import { ref } from 'vue';
-import { auth } from '../firebase.js';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth.js';
 
 const email = ref('');
 const password = ref('');
 const visible = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
+
 // Snackbar
 const showSnackbar = ref(false);
 const snackbarText = ref('');
@@ -68,14 +69,12 @@ const snackbarColor = ref('');
 
 const login = async () => {
     try {
-        await signInWithEmailAndPassword(auth, email.value, password.value);
-        console.log("Logged in successfully!");
+        await authStore.login(email.value, password.value);
         snackbarText.value = "Sign in successful! Redirection in 2 seconds.";
         snackbarColor.value = "green";
         showSnackbar.value = true;
         setTimeout(() => router.push('/'), 2000); // Wait for 2 seconds, then redirect to login
     } catch (error) {
-        console.error("Failed to login:", error.message);
         snackbarText.value = "Sign in failed: " + error.message;
         snackbarColor.value = "red";
         showSnackbar.value = true;
@@ -83,10 +82,8 @@ const login = async () => {
 };
 
 const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
-        console.log("Google sign in successful!");
+        await authStore.signInWithGoogle();
         snackbarText.value = "Google sign in successful! Redirection in 2 seconds.";
         snackbarColor.value = "green";
         showSnackbar.value = true;
