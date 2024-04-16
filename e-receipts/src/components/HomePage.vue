@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <v-timeline align="start" justify="auto">
-            <v-timeline-item v-for="(item, i) in items" :key="i" :dot-color="item.color" :icon="item.icon" size="large" fill-dot>
+            <v-timeline-item v-for="(item, i) in items" :key="i" :dot-color="item.color" :icon="item.icon" fill-dot>
                 <v-card hover max-width="495">
                     <v-card-title :class="['text-h6', `bg-${item.color}`]">
                         {{ item.title }}

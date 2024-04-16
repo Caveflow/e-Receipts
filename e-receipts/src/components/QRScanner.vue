@@ -1,46 +1,61 @@
 <template>
-  <v-container>
-    <!-- Button to toggle the QR scanner -->
-    <v-btn @click="toggleScanner" size="large" color="primary" prepend-icon="mdi-scan-helper" class="mt-3">
-      {{ scannerActive ? 'Stop Scanner' : 'Start Scanner' }}
-    </v-btn>
-    <!-- QR Code Scanner -->
-    <qrcode-stream v-if="scannerActive" @detect="onDetect" :track="paintOutline" @error="onError"></qrcode-stream>
-    <v-row v-else>
-      <v-col cols="6">
-        <v-alert v-if="error" type="error">{{ error }}</v-alert>
-      </v-col>
-    </v-row>
+  <v-sheet border>
+    <v-container>
+      <!-- Button Row for Scanner and Save -->
+      <v-row justify="center">
+        <v-col class="text-center">
+          <v-btn class="ma-3" @click="toggleScanner" size="large" color="primary" prepend-icon="mdi-scan-helper">
+            {{ scannerActive ? 'Stop Scanner' : 'Start Scanner' }}
+          </v-btn>
+          <v-btn class="ma-3" color="green" @click="storeContent" size="large" :disabled="!decodedContent || isSaving">
+            {{ isSaving ? 'Saving...' : 'Save' }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
-    <!-- QR Code Reader via file browser >
-    <qrcode-capture @detect="onDetect"></qrcode-capture -->
+      <!-- Input Fields and Save Button -->
+      <v-row justify="center">
+        <v-col cols="12" md="6">
+          <v-text-field placeholder="Scan to see the content of the QR code" :value="decodedContent" ref="textFieldRef"
+            readonly variant="outlined"></v-text-field>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field label="Remark" placeholder="Enter a remark (optional)" variant="outlined" v-model="remark"
+            clearable></v-text-field>
+        </v-col>
+      </v-row>
+      <!-- QR Code Scanner and Placeholder for When Inactive -->
+      <v-row justify="center">
+        <v-col cols="12" md="8">
+          <v-sheet class="d-flex align-center justify-center" style="min-height: 400px;">
+            <!-- Adjust height as needed -->
+            <qrcode-stream v-if="scannerActive" @detect="onDetect" :track="paintOutline"
+              @error="onError"></qrcode-stream>
+            <v-alert v-else-if="error" type="error">{{ error }}</v-alert>
+            <div v-else class="text-center">Activate the scanner to view here.</div>
+          </v-sheet>
+        </v-col>
+      </v-row>
 
-    <v-row>
-      <v-col class="d-flex align-center" cols="8">
-        <!-- d-flex to display elements inline and align-center for vertical alignment -->
-        <v-text-field ref="textFieldRef" label=" Decoded content" :value="decodedContent" readonly></v-text-field>
-        <v-btn color="primary" @click="storeContent" :disabled="!decodedContent || isSaving" class="ml-3">{{ isSaving ?
-          'Saving...' : 'Save' }}</v-btn>
-      </v-col>
-    </v-row>
-
-    <!-- Snackbar for success message -->
-    <v-snackbar v-model="showSnackbar" :timeout="2000" color="green">
-      The QR code has been successfully saved in the database!
-      <template v-slot:action="{ attrs }">
-        <v-btn color="white" text v-bind="attrs" @click="showSnackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-container>
+      <!-- Snackbar for Success Message -->
+      <v-snackbar v-model="showSnackbar" :timeout="2000" color="green">
+        The QR code has been successfully saved in the database!
+        <template v-slot:action="{ attrs }">
+          <v-btn color="white" text v-bind="attrs" @click="showSnackbar = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </v-container>
+  </v-sheet>
 </template>
+
 
 <script setup>
 import { ref, watch } from 'vue';
 import { QrcodeStream, QrcodeCapture } from 'vue-qrcode-reader';
 import { ref as dbRef, set, push, getDatabase } from 'firebase/database';
-import { onAuthStateChanged } from 'firebase/auth'; 
+import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from "../firebase.js";
 
 // State to manage if the scanner is active
@@ -48,6 +63,7 @@ const scannerActive = ref(false);
 
 const decodedContent = ref('');
 const showSnackbar = ref(false);
+
 
 // Watch the decodedContent for changes
 // Focus and highlight the text field when decodedContent gets a value
@@ -124,7 +140,7 @@ function onError(err) {
 
 // Function to store content in Realtime Database
 const isSaving = ref(false);
-
+const remark = ref('');
 const currentUser = ref(null);  // Reactive reference for the current user
 
 // Monitor auth state and update currentUser
@@ -143,16 +159,18 @@ const storeContent = async () => {
   }
 
   isSaving.value = true;  // Indicate that saving is in progress
-  const postListRef = dbRef(db, 'contents');
+  const postListRef = dbRef(db, 'e-receipts');
   const newPostRef = push(postListRef);
   set(newPostRef, {
     qrcode: decodedContent.value,  // Use the actual value of decodedContent
+    remark: remark.value,
     user: currentUser.value.email,
     timestamp: Date.now()
   })
     .then(() => {
       console.log("Content stored successfully");
       decodedContent.value = '';  // Clear the input field after successful storage
+      remark.value = '';  // Clear the remark field
       isSaving.value = false;  // Reset saving indicator
       showSnackbar.value = true;  // Show the snackbar when content is successfully stored
     })
