@@ -9,7 +9,7 @@
                     <v-card-text class="bg-white text--primary">
                         <p class="ma-3" v-html="item.text"></p>
                         <v-btn v-if="item.btn" :color="item.color" variant="outlined" @click="navigate(item.path)">
-                            {{item.btn}}
+                            {{ item.btn }}
                         </v-btn>
                     </v-card-text>
                 </v-card>
